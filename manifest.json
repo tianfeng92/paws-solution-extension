@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "PAWS Solution - CI Failure Analyzer",
+  "version": "1.0.0",
+  "description": "Analyzes Semaphore CI failures...",
+  "permissions": ["storage", "identity"],
+  "host_permissions": ["*://*.semaphoreci.com/*"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["*://*.semaphoreci.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "oauth2": {
+    "client_id": "114913197347-gu4ij3qi9dm3uc4s6vb41h7em3u8t3hs.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/generative-language.retriever"
+    ]
+  }
+}

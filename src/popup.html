@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PAWS Solution Control</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>🐾 PAWS Solution</h1>
+      <div class="setting">
+        <span>Enable Analysis on Page Load</span>
+        <label class="switch">
+          <input type="checkbox" id="enable-toggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <!-- Analysis section will be here -->
+      <div
+        id="popup-analysis-container"
+        style="
+          display: none;
+          margin-top: 15px;
+          width: 100%;
+          border-top: 1px solid #ddd;
+          padding-top: 15px;
+        "
+      >
+        <h2 style="font-size: 16px; margin-top: 0">Analysis for this Job</h2>
+        <div
+          id="popup-analysis-content"
+          style="font-size: 12px; text-align: left"
+        ></div>
+      </div>
+
+      <div style="width: 100%; margin-top: auto; padding-top: 20px">
+        <button id="login-button">Sign in with Google</button>
+        <p id="auth-status">Not signed in.</p>
+      </div>
+    </div>
+    <script src="popup.js"></script>
+  </body>
+</html>

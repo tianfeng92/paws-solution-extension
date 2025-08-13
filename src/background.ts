@@ -1,7 +1,7 @@
 // --- Log the Extension ID for Debugging ---
 // This will print the extension's ID to the service worker console,
 // so you can verify it against the ID in your Google Cloud project.
-console.log("PAWS Solution Extension ID:", chrome.runtime.id);
+console.log("PAWS Solution running:", chrome.runtime.id);
 
 // --- Type Definitions for Clarity ---
 interface LoginMessage {
@@ -29,7 +29,6 @@ type RuntimeMessage =
   | AnalyzeLogMessage;
 
 // --- Main Message Listener ---
-// Listens for messages from other parts of the extension.
 chrome.runtime.onMessage.addListener(
   (message: RuntimeMessage, sender, sendResponse) => {
     switch (message.action) {
@@ -53,7 +52,6 @@ chrome.runtime.onMessage.addListener(
         return true;
 
       case "logout":
-        // --- Handle Logout ---
         chrome.identity.getAuthToken({ interactive: false }, (token) => {
           if (token) {
             // Revoke the token
@@ -63,7 +61,7 @@ chrome.runtime.onMessage.addListener(
                 `https://accounts.google.com/o/oauth2/revoke?token=${token}`,
               );
 
-              // --- NEW: Clear all cached analysis results ---
+              // Clear all cached analysis results after logout.
               chrome.storage.local.get(null, (items) => {
                 const keysToRemove = Object.keys(items).filter((key) =>
                   key.startsWith("analysis_"),
@@ -99,14 +97,12 @@ chrome.runtime.onMessage.addListener(
         return true;
 
       case "analyze_log":
-        // This is the core function triggered from the content script.
         handleLogAnalysis(message.jobId, sendResponse);
         return true;
     }
   },
 );
 
-// --- Core Logic for Log Analysis ---
 async function handleLogAnalysis(
   jobId: string,
   sendResponse: (response?: any) => void,
@@ -162,10 +158,8 @@ async function handleLogAnalysis(
   }
 }
 
-// --- Helper Functions ---
-
 /**
- * A more intelligent function to find the most relevant part of a log.
+ * Find the most relevant error part of a log.
  * It prioritizes structured, high-confidence error patterns and filters out
  * common noise like warnings and help text.
  */
@@ -173,7 +167,7 @@ function findErrorSnippet(logContent: string): string | null {
   const lines = logContent.split("\n");
   const contextLines = 10; // Number of lines to include before and after the error.
 
-  // --- Priority 1: Look for a "Results summary" block with failures ---
+  // Priority 1: Look for a "Results summary" block with failures.
   const summaryHeaderIndex = lines.findIndex((line) =>
     line.includes("===== Results summary ====="),
   );
@@ -192,7 +186,7 @@ function findErrorSnippet(logContent: string): string | null {
     }
   }
 
-  // --- Priority 2: Look for high-confidence patterns (e.g., build tool errors) ---
+  // Look for high-confidence patterns (e.g., build tool errors).
   const highConfidencePatterns = [
     /make\[\d+\]: \*\*\* .* Error \d+/, // Match 'make' errors
     /ERROR: failed to solve:/, // Match Docker buildx errors
@@ -203,7 +197,7 @@ function findErrorSnippet(logContent: string): string | null {
   for (const pattern of highConfidencePatterns) {
     for (let i = lines.length - 1; i >= 0; i--) {
       if (pattern.test(lines[i])) {
-        // --- NEW: Special handling for 'check-dirty' to avoid sending the diff ---
+        // Special handling for 'check-dirty' to avoid sending the diff.
         if (lines[i].includes("check-dirty")) {
           console.log(
             "PAWS Solution: Found 'check-dirty' error. Excluding preceding diff.",
@@ -225,7 +219,7 @@ function findErrorSnippet(logContent: string): string | null {
     }
   }
 
-  // --- Priority 3: Fallback to generic keywords, filtering out noise ---
+  // Priority 3: Fallback to generic keywords, filtering out noise.
   const exclusionPatterns = [
     /warning:/i,
     /^usage:/i,
@@ -266,7 +260,7 @@ function findErrorSnippet(logContent: string): string | null {
     }
   }
 
-  // --- Final Fallback ---
+  // Final Fallback:
   // If no specific errors are found at all, return the last 20 lines.
   console.log(
     "PAWS Solution: No specific errors found, returning last 20 lines.",
@@ -297,7 +291,7 @@ async function callGeminiAPI(logSnippet: string, token: string): Promise<any> {
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${token}`,
-      "x-goog-user-project": PROJECT_ID, // Required for GCP APIs when using OAuth
+      "x-goog-user-project": PROJECT_ID, // Required for GCP APIs when using OAuth.
     },
     body: JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],

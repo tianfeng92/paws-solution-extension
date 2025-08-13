@@ -1,6 +1,6 @@
 console.log("PAWS Solution: Content script loaded.");
 
-// --- Global variable to store the original log content ---
+// Global variable to store the original log content.
 let originalLogContent: HTMLElement | null = null;
 
 /**
@@ -33,23 +33,23 @@ const setupUI = () => {
     return;
   }
 
-  // --- Store the original log content ---
+  // Store the original log content.
   originalLogContent = jobLogContainer.cloneNode(true) as HTMLElement;
 
-  // 2. Create the new "Paws Solution" tab
+  // 2. Create the new "Paws Solution" tab.
   const newTab = document.createElement("a");
   newTab.id = "paws-solution-tab";
   newTab.href = "#";
   newTab.className = "tab";
   newTab.innerHTML = "🐾 Paws Solution";
 
-  // 3. Insert the new tab into the page
+  // 3. Insert the new tab into the page.
   tabsContainer.appendChild(newTab);
 
   // 4. Add click handlers for tab switching
   newTab.addEventListener("click", (e: MouseEvent) => {
     e.preventDefault();
-    // --- NEW: Load preloaded result on click ---
+    // Load preloaded result on click.
     (jobLogContainer as HTMLElement).innerHTML =
       `<div id="paws-analysis-container" style="padding: 20px; font-family: monospace; white-space: pre-wrap; background-color: #f5f5f5; border-radius: 5px;">Loading analysis...</div>`;
 
@@ -107,8 +107,6 @@ const displayAnalysis = (analysis: any) => {
   }
 };
 
-// --- Main Logic ---
-
 const getJobId = (): string | null => {
   const jobUrlPattern =
     /https:\/\/tigera\.semaphoreci\.com\/jobs\/([a-f0-9-]+)/;
@@ -125,7 +123,7 @@ const isJobFailed = (): boolean => {
   );
 };
 
-const runAnalysisInBackground = () => {
+const runAnalysis = () => {
   const jobId = getJobId();
   if (!jobId) return;
 
@@ -145,7 +143,7 @@ const runAnalysisInBackground = () => {
 const main = () => {
   chrome.storage.local.get({ isEnabled: true }, (data) => {
     if (data.isEnabled) {
-      // --- NEW: Check for authentication before doing anything ---
+      // Check for authentication before doing anything.
       chrome.runtime.sendMessage({ action: "check_auth" }, (response) => {
         if (response?.isLoggedIn) {
           console.log(
@@ -154,9 +152,9 @@ const main = () => {
           setTimeout(() => {
             if (isJobFailed()) {
               setupUI();
-              runAnalysisInBackground(); // Start the analysis immediately
+              runAnalysis(); // Start the analysis immediately.
             }
-          }, 1000); // Wait for the page to load
+          }, 1000); // Wait for the page to load.
         } else {
           console.log(
             "PAWS Solution: User is not signed in. No UI will be added.",
@@ -167,14 +165,13 @@ const main = () => {
   });
 };
 
-// Run main logic on initial load
 main();
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "toggle_analysis" && message.isEnabled) {
     if (isJobFailed()) {
       setupUI();
-      runAnalysisInBackground();
+      runAnalysis();
     }
   }
 });

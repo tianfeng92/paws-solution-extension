@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
     "auth-status",
   ) as HTMLParagraphElement;
 
-  // --- Enable/Disable Toggle Logic ---
+  // Enable/Disable Toggle Logic.
   chrome.storage.local.get({ isEnabled: true }, (data) => {
     enableToggle.checked = !!data.isEnabled;
   });
@@ -64,10 +64,10 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.storage.local.set({ isEnabled: enableToggle.checked });
   });
 
-  // --- Login/Logout Button Logic ---
+  // Login/Logout Button Logic.
   loginButton.addEventListener("click", () => {
     if (loginButton.textContent?.includes("Sign in")) {
-      // --- Handle Login ---
+      // Handle login.
       chrome.runtime.sendMessage(
         { action: "login" },
         (response: AuthSuccessResponse | undefined) => {
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
         },
       );
     } else {
-      // --- Handle Logout ---
+      //  Handle logout.
       chrome.runtime.sendMessage({ action: "logout" }, (response) => {
         if (response?.status === "success") {
           authStatus.textContent = "Not signed in.";
@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // --- Check Auth and Analysis Result on Popup Open ---
+  // Check Auth and Analysis Result on Popup Open.
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
     const currentTab = tabs[0];
     if (currentTab?.url) {

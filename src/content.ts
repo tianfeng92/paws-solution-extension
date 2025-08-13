@@ -61,7 +61,7 @@ const setupUI = () => {
           displayAnalysis(data[cacheKey]);
         } else {
           displayAnalysis(
-            "Analysis is still in progress. Please wait a moment and try again.",
+            "Load analysis...",
           );
           const storageListener = (
             changes: { [key: string]: chrome.storage.StorageChange },

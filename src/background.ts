@@ -79,8 +79,6 @@ async function handleLogAnalysis(
     const cachedResult = await getFromCache(cacheKey);
 
     if (cachedResult) {
-      console.log(`Cache hit for jobId: ${jobId}`);
-      console.log("cachedResult: ", cachedResult);
       sendResponse({ status: "success", analysis: cachedResult });
       return cachedResult;
     }

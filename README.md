@@ -35,4 +35,3 @@ To test the extension locally, you can load it into Chrome as an "unpacked exten
 3.  Click the **"Load unpacked"** button that appears.
 4.  In the file selection dialog, navigate to your project's directory and select the `dist` folder (or whichever folder contains your compiled `manifest.json`, `popup.html`, etc.).
 5.  The "PAWS Solution" extension will now appear in your list of extensions and be active in your browser.
-

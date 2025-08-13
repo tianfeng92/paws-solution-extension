@@ -72,7 +72,20 @@ async function handleLogAnalysis(
   sendResponse: (response?: any) => void,
 ) {
   try {
-    // 1. Get auth token for the Gemini API call.
+    // Construct a unique cache key based on the job ID.
+    const cacheKey = `analysis_${jobId}`;
+
+    // 1. Check the cache first.
+    const cachedResult = await getFromCache(cacheKey);
+
+    if (cachedResult) {
+      console.log(`Cache hit for jobId: ${jobId}`);
+      console.log("cachedResult: ", cachedResult);
+      sendResponse({ status: "success", analysis: cachedResult });
+      return cachedResult;
+    }
+
+    // 2. Get auth token for the Gemini API call.
     const token = await new Promise<string | undefined>((resolve) => {
       // Use interactive:false, assuming the user has already logged in via the popup.
       chrome.identity.getAuthToken({ interactive: false }, resolve);
@@ -84,7 +97,7 @@ async function handleLogAnalysis(
       );
     }
 
-    // 2. Fetch the plain text log file.
+    // 3. Fetch the plain text log file.
     const logUrl = `https://tigera.semaphoreci.com/jobs/${jobId}/plain_logs.txt`;
     const logResponse = await fetch(logUrl);
     if (!logResponse.ok) {
@@ -92,7 +105,7 @@ async function handleLogAnalysis(
     }
     const logContent = await logResponse.text();
 
-    // 3. Pre-process the log to find relevant error snippets.
+    // 4. Pre-process the log to find relevant error snippets.
     const errorSnippet = findErrorSnippet(logContent);
     if (!errorSnippet) {
       sendResponse({
@@ -103,14 +116,8 @@ async function handleLogAnalysis(
     }
 
     const analysis = await callGeminiAPI(errorSnippet, token);
+    await saveToCache(cacheKey, analysis);
     sendResponse({ status: "success", analysis: analysis });
-
-    // Save the analysis to local storage so the popup can access it.
-    const cacheKey = `analysis_${jobId}`;
-    await new Promise<void>((resolve) => {
-      chrome.storage.local.set({ [cacheKey]: analysis }, () => resolve());
-    });
-    console.log("PAWS Solution: Stored analysis in local storage for popup.");
   } catch (error: any) {
     console.error("Analysis failed:", error);
     sendResponse({ status: "error", message: error.message });
@@ -296,4 +303,32 @@ async function fetchUserInfo(token: string): Promise<string | null> {
     chrome.identity.removeCachedAuthToken({ token: token }, () => {});
     return null;
   }
+}
+
+/**
+ * Retrieves data from Chrome's local storage.
+ * This helper function encapsulates the asynchronous storage API call.
+ * @param {string} key The key to retrieve.
+ * @returns {Promise<string|null>} The cached data or null if not found.
+ */
+async function getFromCache(key: string): Promise<string | null> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get([key], (result) => {
+      resolve(result[key] || null);
+    });
+  });
+}
+
+/**
+ * Saves data to Chrome's local storage.
+ * This helper function encapsulates the asynchronous storage API call.
+ * @param {string} key The key to save under.
+ * @param {string} value The value to save.
+ */
+async function saveToCache(key: string, value: string): Promise<void> {
+  return new Promise((resolve) => {
+    chrome.storage.local.set({ [key]: value }, () => {
+      resolve();
+    });
+  });
 }

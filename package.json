@@ -7,7 +7,8 @@
     "clean": "rm -rf dist",
     "build:ts": "tsc --project tsconfig.json",
     "build:copy": "cp manifest.json dist; cp src/*.html dist; cp src/*.css dist; cp -r icons dist/",
-    "build": "npm run clean && npm run build:ts && npm run build:copy"
+    "build": "npm run clean && npm run build:ts && npm run build:copy",
+    "fmt": "npx prettier . --write"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.268",

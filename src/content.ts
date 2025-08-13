@@ -49,14 +49,29 @@ const setupUI = () => {
   // 4. Add click handlers for tab switching
   newTab.addEventListener("click", (e: MouseEvent) => {
     e.preventDefault();
-    jobLogContainer.innerHTML = `<div id="paws-analysis-container" style="padding: 20px; font-family: monospace; white-space: pre-wrap; background-color: #f5f5f5; border-radius: 5px;">Analyzing...</div>`;
-    runAnalysis(); // Fetch and display the analysis
+    // --- NEW: Load preloaded result on click ---
+    (jobLogContainer as HTMLElement).innerHTML =
+      `<div id="paws-analysis-container" style="padding: 20px; font-family: monospace; white-space: pre-wrap; background-color: #f5f5f5; border-radius: 5px;">Loading analysis...</div>`;
+
+    const jobId = getJobId();
+    if (jobId) {
+      const cacheKey = `analysis_${jobId}`;
+      chrome.storage.local.get(cacheKey, (data) => {
+        if (data[cacheKey]) {
+          displayAnalysis(data[cacheKey]);
+        } else {
+          displayAnalysis(
+            "Analysis is still in progress. Please wait a moment and try again.",
+          );
+        }
+      });
+    }
   });
 
   jobLogTab.addEventListener("click", (e: MouseEvent) => {
     e.preventDefault();
     if (originalLogContent) {
-      jobLogContainer.innerHTML = originalLogContent.innerHTML;
+      (jobLogContainer as HTMLElement).innerHTML = originalLogContent.innerHTML;
     }
   });
 };
@@ -67,7 +82,6 @@ const setupUI = () => {
 const displayAnalysis = (analysis: any) => {
   const analysisContainer = document.getElementById("paws-analysis-container");
   if (analysisContainer) {
-    // Check if the analysis object has the expected fields
     if (analysis.summary && analysis.rootCause && analysis.solution) {
       const tableHTML = `
                 <table style="width: 100%; border-collapse: collapse;">
@@ -87,7 +101,6 @@ const displayAnalysis = (analysis: any) => {
             `;
       analysisContainer.innerHTML = tableHTML;
     } else {
-      // Fallback for errors or unexpected formats
       const formattedJson = JSON.stringify(analysis, null, 2);
       analysisContainer.innerHTML = `<pre>${formattedJson}</pre>`;
     }
@@ -112,23 +125,18 @@ const isJobFailed = (): boolean => {
   );
 };
 
-const runAnalysis = () => {
+const runAnalysisInBackground = () => {
   const jobId = getJobId();
   if (!jobId) return;
 
+  console.log(`PAWS Solution: Preloading analysis for Job ID: ${jobId}.`);
   chrome.runtime.sendMessage(
     { action: "analyze_log", jobId: jobId },
     (response) => {
       if (chrome.runtime.lastError) {
         console.error("PAWS Solution:", chrome.runtime.lastError.message);
-        displayAnalysis({ error: chrome.runtime.lastError.message });
-        return;
-      }
-
-      if (response.status === "success") {
-        displayAnalysis(response.analysis);
       } else {
-        displayAnalysis({ error: response.message });
+        console.log("PAWS Solution: Background analysis complete.", response);
       }
     },
   );
@@ -137,21 +145,36 @@ const runAnalysis = () => {
 const main = () => {
   chrome.storage.local.get({ isEnabled: true }, (data) => {
     if (data.isEnabled) {
-      setTimeout(() => {
-        if (isJobFailed()) {
-          setupUI();
+      // --- NEW: Check for authentication before doing anything ---
+      chrome.runtime.sendMessage({ action: "check_auth" }, (response) => {
+        if (response?.isLoggedIn) {
+          console.log(
+            "PAWS Solution: User is signed in. Proceeding with checks.",
+          );
+          setTimeout(() => {
+            if (isJobFailed()) {
+              setupUI();
+              runAnalysisInBackground(); // Start the analysis immediately
+            }
+          }, 1000); // Wait for the page to load
+        } else {
+          console.log(
+            "PAWS Solution: User is not signed in. No UI will be added.",
+          );
         }
-      }, 1000); // Wait for the page to load
+      });
     }
   });
 };
 
+// Run main logic on initial load
 main();
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.action === "toggle_analysis" && message.isEnabled) {
     if (isJobFailed()) {
       setupUI();
+      runAnalysisInBackground();
     }
   }
 });

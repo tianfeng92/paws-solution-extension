@@ -8,6 +8,10 @@ interface LoginMessage {
   action: "login";
 }
 
+interface LogoutMessage {
+  action: "logout";
+}
+
 interface CheckAuthMessage {
   action: "check_auth";
 }
@@ -18,7 +22,11 @@ interface AnalyzeLogMessage {
 }
 
 // Union type for all possible messages
-type RuntimeMessage = LoginMessage | CheckAuthMessage | AnalyzeLogMessage;
+type RuntimeMessage =
+  | LoginMessage
+  | LogoutMessage
+  | CheckAuthMessage
+  | AnalyzeLogMessage;
 
 // --- Main Message Listener ---
 // Listens for messages from other parts of the extension.
@@ -42,6 +50,38 @@ chrome.runtime.onMessage.addListener(
           });
         });
         // Return true to indicate that we will send a response asynchronously.
+        return true;
+
+      case "logout":
+        // --- Handle Logout ---
+        chrome.identity.getAuthToken({ interactive: false }, (token) => {
+          if (token) {
+            // Revoke the token
+            chrome.identity.removeCachedAuthToken({ token: token }, () => {
+              // Also clear it from Google's side
+              fetch(
+                `https://accounts.google.com/o/oauth2/revoke?token=${token}`,
+              );
+
+              // --- NEW: Clear all cached analysis results ---
+              chrome.storage.local.get(null, (items) => {
+                const keysToRemove = Object.keys(items).filter((key) =>
+                  key.startsWith("analysis_"),
+                );
+                if (keysToRemove.length > 0) {
+                  chrome.storage.local.remove(keysToRemove, () => {
+                    console.log(
+                      "PAWS Solution: Cleared cached analysis on logout.",
+                    );
+                  });
+                }
+              });
+
+              console.log("PAWS Solution: User signed out.");
+              sendResponse({ status: "success" });
+            });
+          }
+        });
         return true;
 
       case "check_auth":

@@ -64,17 +64,28 @@ document.addEventListener("DOMContentLoaded", () => {
     chrome.storage.local.set({ isEnabled: enableToggle.checked });
   });
 
-  // --- Login Button Logic ---
+  // --- Login/Logout Button Logic ---
   loginButton.addEventListener("click", () => {
-    chrome.runtime.sendMessage(
-      { action: "login" },
-      (response: AuthSuccessResponse | undefined) => {
+    if (loginButton.textContent?.includes("Sign in")) {
+      // --- Handle Login ---
+      chrome.runtime.sendMessage(
+        { action: "login" },
+        (response: AuthSuccessResponse | undefined) => {
+          if (response?.status === "success") {
+            authStatus.textContent = `Signed in as ${response.email}`;
+            loginButton.textContent = "Sign Out";
+          }
+        },
+      );
+    } else {
+      // --- Handle Logout ---
+      chrome.runtime.sendMessage({ action: "logout" }, (response) => {
         if (response?.status === "success") {
-          authStatus.textContent = `Signed in as ${response.email}`;
-          loginButton.textContent = "Sign Out";
+          authStatus.textContent = "Not signed in.";
+          loginButton.textContent = "Sign in with Google";
         }
-      },
-    );
+      });
+    }
   });
 
   // --- Check Auth and Analysis Result on Popup Open ---
@@ -88,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const jobId = match[1];
         const cacheKey = `analysis_${jobId}`;
         chrome.storage.local.get(cacheKey, (data) => {
-          if (data[cacheKey] && enableToggle.checked) {
+          if (data[cacheKey]) {
             displayAnalysisInPopup(data[cacheKey]);
           }
         });

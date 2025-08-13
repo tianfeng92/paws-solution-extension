@@ -19,7 +19,7 @@ This project is built using TypeScript and requires a build step to compile the 
     npm install
     ```
 
-2. **Set Project ID**
+2.  **Set Project ID**
 
     Replace `PROJECT_ID_PLACEHOLDER` in background.ts with our project ID.
 

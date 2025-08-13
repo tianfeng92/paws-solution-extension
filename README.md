@@ -19,7 +19,11 @@ This project is built using TypeScript and requires a build step to compile the 
     npm install
     ```
 
-2.  **Build the Extension:**
+2. **Set Project ID**
+
+    Replace `PROJECT_ID_PLACEHOLDER` in background.ts with our project ID.
+
+3.  **Build the Extension:**
     Run the build command. This will compile the TypeScript files (`.ts`) into JavaScript (`.js`) and place them in a `dist` directory, ready to be loaded by Chrome.
 
     ```

@@ -46,7 +46,7 @@ const setupUI = () => {
   // 3. Insert the new tab into the page.
   tabsContainer.appendChild(newTab);
 
-  // 4. Add click handlers for tab switching
+  // 4. Add click handlers for tab switching.
   newTab.addEventListener("click", (e: MouseEvent) => {
     e.preventDefault();
     // Load preloaded result on click.
@@ -63,6 +63,20 @@ const setupUI = () => {
           displayAnalysis(
             "Analysis is still in progress. Please wait a moment and try again.",
           );
+          const storageListener = (
+            changes: { [key: string]: chrome.storage.StorageChange },
+            areaName: string,
+          ) => {
+            if (areaName === "local" && changes[cacheKey]) {
+              console.log(
+                "PAWS Solution: Detected new analysis in storage. Updating UI.",
+              );
+              displayAnalysis(changes[cacheKey].newValue);
+              // Important: remove the listener once we've used it.
+              chrome.storage.onChanged.removeListener(storageListener);
+            }
+          };
+          chrome.storage.onChanged.addListener(storageListener);
         }
       });
     }

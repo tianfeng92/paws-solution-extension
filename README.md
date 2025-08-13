@@ -1,5 +1,7 @@
 # 🐾 PAWS Solution - CI Failure Analyzer
 
+![Paws Solution](/paws-solution.png)
+
 ## Description
 
 PAWS Solution is a Chrome extension designed to help developers quickly diagnose failed CI/CD jobs on Semaphore. It reads the log output of a failed job, sends a relevant snippet to the Gemini API for analysis, and displays a concise summary of the root cause and a suggested solution directly on the Semaphore page.

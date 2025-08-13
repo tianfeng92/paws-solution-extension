@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "rm -rf dist",
     "build:ts": "tsc --project tsconfig.json",
-    "build:copy": "cp manifest.json dist; cp src/*.html dist; cp src/*.css dist",
+    "build:copy": "cp manifest.json dist; cp src/*.html dist; cp src/*.css dist; cp -r icons dist/",
     "build": "npm run clean && npm run build:ts && npm run build:copy"
   },
   "devDependencies": {

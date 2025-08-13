@@ -1,4 +1,6 @@
-# ![Paws Solution](/icons/icon32.png) PAWS Solution - CI Failure Analyzer
+# ![Paws Solution Icon](/icons/icon32.png) PAWS Solution - CI Failure Analyzer
+
+![Paws Solution](/paws-solution.png)
 
 ## Description
 

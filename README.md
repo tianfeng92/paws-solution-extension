@@ -1,6 +1,4 @@
-# 🐾 PAWS Solution - CI Failure Analyzer
-
-![Paws Solution](/icons/icon128.png)
+# ![Paws Solution](/icons/icon16.png) PAWS Solution - CI Failure Analyzer
 
 ## Description
 

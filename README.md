@@ -20,9 +20,11 @@ You can also click on the extension's icon in the Chrome toolbar to see the anal
 
 1.  **Log Analysis:** The extension automatically fetches the full log file of a failed Semaphore job.
 2.  **Smart Snippet Extraction:** It uses a series of heuristics to find the most relevant error snippet from the log, filtering out common noise like warnings and help text.
-3.  **Gemini API Call:** This small, targeted log snippet is sent to the Gemini API with a prompt asking for a root cause analysis and a suggested solution.
-4.  **Display Results:** The structured JSON response from Gemini is then formatted and displayed.
-
+3.  **Token Optimization:** To reduce API usage, the extension includes two key optimizations:
+    * **Caching:** The analysis for a specific error snippet is cached per each job page.
+    * **Reduced Context:** Only the small, targeted error snippet is sent for analysis, not the entire log file. This significantly reduces the number of tokens used per request.
+4.  **Gemini API Call:** The log snippet is sent to the Gemini API with a prompt asking for a root cause analysis and a suggested solution.
+5.  **Display Results:** The structured JSON response from Gemini is then formatted and displayed in "Paws Solution" tab and Chrome extension.
 
 ## How to Build
 
